@@ -14,7 +14,7 @@ Authentication/authorization is based on JSON Web Tokens (JWTs) via the [OpenID 
 ## Usage
 
 
-Tested on Node 14.6.1
+Tested on Node 14-24
 
 ```
 git clone https://github.com/OpenArCloud/oscp-spatial-service-discovery
@@ -22,13 +22,13 @@ cd oscp-spatial-service-discovery
 npm install
 ```
 
-Create .env file with required params ex.
+Create .env file as described below
 
 ```
 KAPPA_CORE_DIR="data"
 SWARM_TOPIC_PREFIX="oscpdev_ssd"
 AUTH0_ISSUER=https://ssd-oscp.us.auth0.com/
-AUTH0_AUDIENCE=https://ssd.oscp.clouspose.io
+AUTH0_AUDIENCE=https://ssd.oscp.cloudpose.io
 COUNTRIES="IT,FI,US"
 PORT=3000
 ```
@@ -44,6 +44,41 @@ Start the Spatial Service Discovery service (production)
 ```
 npm start
 ```
+
+## Running the project via Docker
+
+Simply run the following command: `docker compose up -d`. This will build the image based on the present `Dockerfile` and set up the approppriate volumes for the project.
+If you have changed something in the source code and need to rebuild the image before running the service run the following command: `docker compose up --build --force-recreate --no-deps -d` this will rebuild the image and launch the service again. You might need to first stop the containers first with `docker compose down`. Note: Compose automatically reads a `.env` file in the same folder as `docker-compose.yaml` for variable substitution like `${PORT}`.
+
+### Environment Configuration
+
+The project uses a `.env` file to configure both runtime and Docker build settings. Create or update `.env` in the project root with the following variables:
+
+```
+# Data storage directory (relative path, will be mounted into container)
+KAPPA_CORE_DIR=data
+
+# P2P swarm topic prefix for node identification
+SWARM_TOPIC_PREFIX=<your_prefix>
+
+# Authentication
+AUTH0_ISSUER=https://<your_tenant>.auth0.com/
+AUTH0_AUDIENCE=https://<your_domain>:<your_port>
+
+# Spatial discovery regions (ISO country codes)
+COUNTRIES="AT,BE,BG,CY,CZ,DE,DK,EE,ES,FI,FR,GR,HR,HU,UI,IT,LT,LU,LV,MT,NL,PL,PT,RO,SE,SG,SI,SK,TR,US"
+
+# Service port (used in container and exported to host)
+PORT=8031
+```
+
+**Variable Reference:**
+- `KAPPA_CORE_DIR`: Local directory for persistent kappa-core database files. This folder is mounted as a bind volume into the container at `/app/${KAPPA_CORE_DIR}`.
+- `SWARM_TOPIC_PREFIX`: Prefix used for hyperswarm topic generation and P2P network identification. It has the same role as GEOZONE in Spatial Content Discovery, servers with the same SWARM_TOPIC_PREFIX will synchronize their data.
+- `AUTH0_ISSUER`: Auth0 OAuth provider issuer URL.
+- `AUTH0_AUDIENCE`: Auth0 audience identifier (typically your service URL).
+- `COUNTRIES`: Comma-separated ISO country codes this service instance manages. Spatial Service Records are stored in per-country databases.
+- `PORT`: The port the Node.js service listens on inside the container and exposed to the host.
 
 ## Testing via Swagger
 
@@ -131,4 +166,3 @@ GeoJSON polygons are mapped to OSM closed *ways* which reference an ordered set 
 ## Configuring a Reference Auth Service
 
 To configure Auth0 as a reference auth service please see [Auth0 for SSD](auth0_ssd.md).
-
