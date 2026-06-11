@@ -3,6 +3,7 @@ import request from "request-promise";
 import { Element } from "./models/osm_json.interface";
 import { SsrDto } from "./models/ssr.dto";
 import { validateOrReject } from "class-validator";
+import "./noise-protocol-compat";
 import kappa from "kappa-core";
 import ram from "random-access-memory";
 import memdb from "memdb";
