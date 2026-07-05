@@ -9,25 +9,43 @@ import { plainToClass } from "class-transformer";
 const jwtAuthz = require("express-jwt-authz");
 
 const AUTH0_AUDIENCE: string = process.env.AUTH0_AUDIENCE as string;
+const AUTH_REQUIRED: boolean = ["1", "true", "yes", "on"].includes(
+  (process.env.AUTH_REQUIRED || "true").toLowerCase()
+);
+
+const NOAUTH_PROVIDER = "noauthtest";
 
 class Router {
   constructor(server: express.Express) {
     const router = express.Router();
+    const getProvider = (req: express.Request): string => {
+      if (!AUTH_REQUIRED) {
+        return NOAUTH_PROVIDER;
+      }
+
+      const userClaims = req["user"] as Record<string, string> | undefined;
+      const provider = userClaims?.[AUTH0_AUDIENCE + "/provider"];
+
+      if (!provider) {
+        throw new Error("Invalid provider");
+      }
+
+      return provider;
+    };
 
     router.get(
       "/:country/provider/ssrs",
-      checkJwt,
-      jwtAuthz(["read:ssrs"]),
+      ...(AUTH_REQUIRED ? [checkJwt, jwtAuthz(["read:ssrs"])] : []),
       async (req: express.Request, res: express.Response) => {
         try {
-          const provider: string = req["user"][AUTH0_AUDIENCE + "/provider"];
+          const provider: string = getProvider(req);
           const country: string = req.params.country.toUpperCase();
           const ssrs: Ssr[] = await Service.findAllProvider(country, provider);
           res
             .status(200)
             .type("application/vnd.oscp+json; version=" + Global.ssdVersion)
             .send(ssrs);
-        } catch (e) {
+        } catch (e: any) {
           res.status(404).send(e.message);
         }
       }
@@ -44,7 +62,7 @@ class Router {
             .status(200)
             .type("application/vnd.oscp+json; version=" + Global.ssdVersion)
             .send(ssr);
-        } catch (e) {
+        } catch (e: any) {
           res.status(404).send(e.message);
         }
       }
@@ -52,16 +70,15 @@ class Router {
 
     router.delete(
       "/:country/ssrs/:id",
-      checkJwt,
-      jwtAuthz(["delete:ssrs"]),
+      ...(AUTH_REQUIRED ? [checkJwt, jwtAuthz(["delete:ssrs"])] : []),
       async (req: express.Request, res: express.Response) => {
         try {
-          const provider: string = req["user"][AUTH0_AUDIENCE + "/provider"];
+          const provider: string = getProvider(req);
           const country: string = req.params.country.toUpperCase();
           const id: string = req.params.id;
           await Service.remove(country, id, provider);
           res.sendStatus(200);
-        } catch (e) {
+        } catch (e: any) {
           res.status(500).send(e.message);
         }
       }
@@ -78,7 +95,7 @@ class Router {
             .status(200)
             .type("application/vnd.oscp+json; version=" + Global.ssdVersion)
             .send(ssrs);
-        } catch (e) {
+        } catch (e: any) {
           res.status(404).send(e.message);
         }
       }
@@ -86,16 +103,15 @@ class Router {
 
     router.post(
       "/:country/ssrs",
-      checkJwt,
-      jwtAuthz(["create:ssrs"]),
+      ...(AUTH_REQUIRED ? [checkJwt, jwtAuthz(["create:ssrs"])] : []),
       async (req: express.Request, res: express.Response) => {
         try {
-          const provider: string = req["user"][AUTH0_AUDIENCE + "/provider"];
+          const provider: string = getProvider(req);
           const country: string = req.params.country.toUpperCase();
           const ssr = plainToClass(SsrDto, req.body);
           const id: string = await Service.create(country, ssr, provider);
           res.status(201).send(id);
-        } catch (e) {
+        } catch (e: any) {
           res.status(404).send(e.message);
         }
       }
@@ -103,17 +119,16 @@ class Router {
 
     router.put(
       "/:country/ssrs/:id",
-      checkJwt,
-      jwtAuthz(["update:ssrs"]),
+      ...(AUTH_REQUIRED ? [checkJwt, jwtAuthz(["update:ssrs"])] : []),
       async (req: express.Request, res: express.Response) => {
         try {
-          const provider: string = req["user"][AUTH0_AUDIENCE + "/provider"];
+          const provider: string = getProvider(req);
           const country: string = req.params.country.toUpperCase();
           const ssr = plainToClass(SsrDto, req.body);
           const id: string = req.params.id;
           await Service.update(country, id, ssr, provider);
           res.sendStatus(200);
-        } catch (e) {
+        } catch (e: any) {
           res.status(500).send(e.message);
         }
       }

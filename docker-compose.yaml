@@ -1,0 +1,13 @@
+services:
+  spatial-service-discovery:
+    env_file:
+      - .env
+    ports:
+      - ${PORT:-8031}:${PORT:-8031}
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        APP_PORT: ${PORT:-8031}
+    volumes:
+      - ./${KAPPA_CORE_DIR:-data}:/app/${KAPPA_CORE_DIR:-data}
