@@ -1,5 +1,4 @@
 import { Ssr } from "./models/ssr.interface";
-import request from "request-promise";
 import { Element } from "./models/osm_json.interface";
 import { SsrDto } from "./models/ssr.dto";
 import { validateOrReject } from "class-validator";
@@ -16,9 +15,19 @@ import { Global } from "./global";
 
 dotenv.config();
 
-const KAPPA_CORE_DIR: string = process.env.KAPPA_CORE_DIR as string;
-const SWARM_TOPIC_PREFIX: string = process.env.SWARM_TOPIC_PREFIX as string;
-let COUNTRIES: string[] = process.env.COUNTRIES.split(",");
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (value === undefined || value.trim() === "") {
+    throw new Error(
+      `Missing required environment variable: ${name}. Set it in .env or the process environment.`
+    );
+  }
+  return value;
+}
+
+const KAPPA_CORE_DIR: string = requireEnv("KAPPA_CORE_DIR");
+const SWARM_TOPIC_PREFIX: string = requireEnv("SWARM_TOPIC_PREFIX");
+let COUNTRIES: string[] = requireEnv("COUNTRIES").split(",");
 COUNTRIES = COUNTRIES.map(function (x) {
   return x.toUpperCase();
 });
