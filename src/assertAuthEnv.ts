@@ -4,6 +4,16 @@ export function authRequiredFromEnv(): boolean {
   );
 }
 
+/** Auth0 issuer URLs must end with `/` (matches JWT `iss` and JWKS path). */
+export function normalizeAuth0Issuer(raw: string): string {
+  const trimmed = raw.trim();
+  return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
+}
+
+export function auth0JwksUri(issuer: string): string {
+  return `${normalizeAuth0Issuer(issuer)}.well-known/jwks.json`;
+}
+
 export function assertAuthEnvIfRequired(): void {
   if (!authRequiredFromEnv()) {
     return;
@@ -25,4 +35,6 @@ export function assertAuthEnvIfRequired(): void {
     );
     process.exit(1);
   }
+
+  process.env.AUTH0_ISSUER = normalizeAuth0Issuer(process.env.AUTH0_ISSUER!);
 }
