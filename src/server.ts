@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import { assertAuthEnvIfRequired } from "./assertAuthEnv";
+assertAuthEnvIfRequired();
+
 import app from "./app";
 
 const portRaw = process.env.PORT;
