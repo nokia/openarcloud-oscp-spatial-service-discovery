@@ -426,7 +426,7 @@ export const update = async (
       provider: provider,
       altitude: ssr.altitude,
       version: Global.ssdVersion,
-      active: ssr.active,
+      active: ssr.active ?? nodes[0].tags.active ?? true,
     },
   };
 
