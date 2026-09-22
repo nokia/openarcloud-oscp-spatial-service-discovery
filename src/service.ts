@@ -71,6 +71,23 @@ function sameIgnoreCase(a: string | undefined, b: string): boolean {
   return typeof a === "string" && a.toUpperCase() === b.toUpperCase();
 }
 
+function requireValidH3Index(h3Index: string): void {
+  if (!h3Index || !h3.h3IsValid(h3Index)) {
+    throw new Error("Invalid h3Index");
+  }
+}
+
+/**
+ * kappa-osm only knows OSM primitives (node / way / relation). An SSR is stored
+ * as a closed OSM *way* (`type === "way"`) whose `refs` are vertex nodes; the
+ * SSR payload lives in the way's tags. Those ways are not OpenStreetMap streets.
+ * Do not change the on-disk type: existing databases and bbox queries depend on
+ * it. HTTP responses map these records to `type: "ssr"`.
+ */
+function isLiveSsr(element: Element): boolean {
+  return element.type === "way" && !element.deleted;
+}
+
 export interface IHash {
   [key: string]: any;
 }
@@ -168,7 +185,7 @@ export const findHex = async (
   h3Index: string
 ): Promise<Ssr[]> => {
   if (!COUNTRIES.includes(country)) throw new Error("Invalid country");
-  if (!h3Index) throw new Error("Invalid h3Index");
+  requireValidH3Index(h3Index);
 
   const hexBoundary = h3.h3ToGeoBoundary(h3Index, true);
   const hexPoly = turf.polygon([hexBoundary]);
@@ -191,7 +208,7 @@ export const findHex = async (
   });
 
   const elements: Element[] = await osmQuery;
-  const ways = elements.filter((element) => element.type === "way");
+  const ways = elements.filter(isLiveSsr);
   const waysActive = ways.filter((element) => element.tags.active === true);
 
   const waysIntersect = waysActive.filter((way) =>
@@ -231,7 +248,7 @@ export const findAllProvider = async (
 
   const elements: Element[] = await osmQuery;
 
-  const ways = elements.filter((element) => element.type === "way");
+  const ways = elements.filter(isLiveSsr);
 
   const waysAllProvider = ways.filter(
     (element) => sameIgnoreCase(element.tags.provider, provider)
@@ -275,6 +292,7 @@ export const create = async (
 
   let nodeIds: string[] = [];
 
+  // Vertex nodes so kappa-osm can bbox-index the closed way. They are not SSRs.
   for (let i = 0; i < ssr.geometry.coordinates[0].length - 1; i++) {
     const node: Element = {
       type: "node",
@@ -300,6 +318,7 @@ export const create = async (
   }
 
   const way: Element = {
+    // Repurposed OSM way: this is the SSR. Keep type "way" for existing records.
     type: "way",
     changeset: "abcdef",
     refs: nodeIds,
@@ -365,6 +384,7 @@ export const update = async (
 
   let nodeIds: string[] = [];
 
+  // Vertex nodes so kappa-osm can bbox-index the closed way. They are not SSRs.
   for (let i = 0; i < ssr.geometry.coordinates[0].length - 1; i++) {
     const node: Element = {
       type: "node",
@@ -390,6 +410,7 @@ export const update = async (
   }
 
   const way: Element = {
+    // Repurposed OSM way: this is the SSR. Keep type "way" for existing records.
     type: "way",
     changeset: "abcdef",
     refs: nodeIds,

@@ -13,6 +13,7 @@ export interface Tags {
 export interface Element {
   id?: string;
   deleted?: boolean;
+  // kappa-osm primitive: "node" (polygon vertex) or "way" (repurposed as an SSR).
   type: string;
   refs?: string[];
   changeset: string;
