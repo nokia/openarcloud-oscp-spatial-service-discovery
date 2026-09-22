@@ -67,6 +67,10 @@ async function assertValid(value: object): Promise<void> {
   }
 }
 
+function sameIgnoreCase(a: string | undefined, b: string): boolean {
+  return typeof a === "string" && a.toUpperCase() === b.toUpperCase();
+}
+
 export interface IHash {
   [key: string]: any;
 }
@@ -141,7 +145,7 @@ export const remove = async (
 
   if (nodes.length === 0) throw new Error("No record found");
   if (nodes[0].deleted) throw new Error("No record found");
-  if (nodes[0].tags.provider.toUpperCase() !== provider.toUpperCase())
+  if (!sameIgnoreCase(nodes[0].tags.provider, provider))
     throw new Error("Invalid provider");
 
   const osmDel = new Promise<void>((resolve, reject) => {
@@ -230,7 +234,7 @@ export const findAllProvider = async (
   const ways = elements.filter((element) => element.type === "way");
 
   const waysAllProvider = ways.filter(
-    (element) => element.tags.provider === provider
+    (element) => sameIgnoreCase(element.tags.provider, provider)
   );
 
   const mapResponse = (response: Element[]) =>
@@ -348,7 +352,7 @@ export const update = async (
 
   if (nodes.length === 0) throw new Error("No record found");
   if (nodes[0].deleted) throw new Error("No record found");
-  if (nodes[0].tags.provider.toUpperCase() !== provider.toUpperCase())
+  if (!sameIgnoreCase(nodes[0].tags.provider, provider))
     throw new Error("Invalid provider");
 
   if (
