@@ -211,9 +211,15 @@ export const findHex = async (
   const ways = elements.filter(isLiveSsr);
   const waysActive = ways.filter((element) => element.tags.active === true);
 
-  const waysIntersect = waysActive.filter((way) =>
-    turf.intersect(hexPoly, turf.polygon(way.tags.geometry.coordinates))
-  );
+  const waysIntersect = waysActive.filter((way) => {
+    try {
+      return Boolean(
+        turf.intersect(hexPoly, turf.polygon(way.tags.geometry.coordinates))
+      );
+    } catch {
+      return false;
+    }
+  });
 
   const mapResponse = (response: Element[]) =>
     response.map((p) => ({
@@ -281,14 +287,6 @@ export const create = async (
   if (!provider) throw new Error("Invalid provider");
 
   await assertValid(ssr);
-
-  if (
-    JSON.stringify(ssr.geometry.coordinates[0][0]) !==
-    JSON.stringify(
-      ssr.geometry.coordinates[0][ssr.geometry.coordinates[0].length - 1]
-    )
-  )
-    throw new Error("Invalid polygon");
 
   let nodeIds: string[] = [];
 
@@ -373,14 +371,6 @@ export const update = async (
   if (nodes[0].deleted) throw new Error("No record found");
   if (!sameIgnoreCase(nodes[0].tags.provider, provider))
     throw new Error("Invalid provider");
-
-  if (
-    JSON.stringify(ssr.geometry.coordinates[0][0]) !==
-    JSON.stringify(
-      ssr.geometry.coordinates[0][ssr.geometry.coordinates[0].length - 1]
-    )
-  )
-    throw new Error("Invalid polygon");
 
   let nodeIds: string[] = [];
 
