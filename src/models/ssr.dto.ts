@@ -44,7 +44,6 @@ export class ServiceDto {
 
   @ValidateNested({ each: true })
   @IsOptional()
-  @ArrayNotEmpty()
   @Type(() => PropertyDto)
   properties?: PropertyDto[];
 }
