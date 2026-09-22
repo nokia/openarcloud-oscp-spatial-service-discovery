@@ -25,8 +25,23 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function optionalEnvNumber(name: string, defaultValue: number): number {
+  const raw = process.env[name];
+  if (raw === undefined || raw.trim() === "") {
+    return defaultValue;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(
+      `Invalid environment variable: ${name}. Must be a positive number.`
+    );
+  }
+  return value;
+}
+
 const KAPPA_CORE_DIR: string = requireEnv("KAPPA_CORE_DIR");
 const SWARM_TOPIC_PREFIX: string = requireEnv("SWARM_TOPIC_PREFIX");
+const SEARCH_RADIUS_KM: number = optionalEnvNumber("SEARCH_RADIUS_KM", 5);
 let COUNTRIES: string[] = requireEnv("COUNTRIES").split(",");
 COUNTRIES = COUNTRIES.map(function (x) {
   return x.toUpperCase();
@@ -192,9 +207,10 @@ export const findHex = async (
   const hexCenterCoordinates = h3.h3ToGeo(h3Index);
 
   const center = [hexCenterCoordinates[1], hexCenterCoordinates[0]];
-  const radius = 100;
-  const options = { steps: 6 };
-  const circle = turf.circle(center, radius, options);
+  const circle = turf.circle(center, SEARCH_RADIUS_KM, {
+    steps: 6,
+    units: "kilometers",
+  });
   const bbox = turf.bbox(circle);
 
   const osmQuery = new Promise<Element[]>((resolve, reject) => {

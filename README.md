@@ -32,6 +32,7 @@ AUTH0_ISSUER=https://ssd-oscp.us.auth0.com/
 AUTH0_AUDIENCE=https://ssd.oscp.cloudpose.io
 COUNTRIES="IT,FI,US"
 PORT=3000
+SEARCH_RADIUS_KM=5
 ```
 
 Start the Spatial Service Discovery service (development)
@@ -72,6 +73,9 @@ COUNTRIES="AT,BE,BG,CY,CZ,DE,DK,EE,ES,FI,FR,GR,HR,HU,UI,IT,LT,LU,LV,MT,NL,PL,PT,
 
 # Service port (used in container and exported to host)
 PORT=8031
+
+# Wider bbox query around the client H3 hex (Turf kilometers). Default: 5
+SEARCH_RADIUS_KM=5
 ```
 
 **Variable Reference:**
@@ -82,6 +86,7 @@ PORT=8031
 - `AUTH0_AUDIENCE`: Auth0 audience identifier (typically your service URL).
 - `COUNTRIES`: Comma-separated ISO country codes this service instance manages. Spatial Service Records are stored in per-country databases.
 - `PORT`: The port the Node.js service listens on inside the container and exposed to the host.
+- `SEARCH_RADIUS_KM`: Radius in kilometers of the bbox query around the client H3 hex (Turf `kilometers`). Default: `5`.
 
 ## Testing via Swagger
 
@@ -95,7 +100,7 @@ http://localhost:3000/swagger/
 
 ## Search Logic
 
-The query API expects a client to provide a hexagonal coverage area by using an [H3 index](https://eng.uber.com/h3/) ex. precision level 8. This avoids exposing the client's specific location. The service then performs a wider scale query at a configurable radius (default: 5km) to the p2p OpenStreetMap backend and returns any coverage polygons that intersect with the client provided H3 hexagon.
+The query API expects a client to provide a hexagonal coverage area by using an [H3 index](https://eng.uber.com/h3/) ex. precision level 8. This avoids exposing the client's specific location. The service then performs a wider scale query at a configurable radius (`SEARCH_RADIUS_KM`, default: 5 km) to the p2p OpenStreetMap backend and returns any coverage polygons that intersect with the client provided H3 hexagon. Invalid H3 indexes are rejected.
 
 ![Search image](images/search.png?raw=true)
 
