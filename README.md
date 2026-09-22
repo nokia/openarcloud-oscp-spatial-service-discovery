@@ -27,6 +27,7 @@ Create .env file as described below
 ```
 KAPPA_CORE_DIR="data"
 SWARM_TOPIC_PREFIX="oscpdev_ssd"
+AUTH_REQUIRED=true
 AUTH0_ISSUER=https://ssd-oscp.us.auth0.com/
 AUTH0_AUDIENCE=https://ssd.oscp.cloudpose.io
 COUNTRIES="IT,FI,US"
@@ -61,7 +62,8 @@ KAPPA_CORE_DIR=data
 # P2P swarm topic prefix for node identification
 SWARM_TOPIC_PREFIX=<your_prefix>
 
-# Authentication
+# Authentication (default: true; set false only for local/dev without Auth0)
+AUTH_REQUIRED=true
 AUTH0_ISSUER=https://<your_tenant>.auth0.com/
 AUTH0_AUDIENCE=https://<your_domain>:<your_port>
 
@@ -75,6 +77,7 @@ PORT=8031
 **Variable Reference:**
 - `KAPPA_CORE_DIR`: Local directory for persistent kappa-core database files. This folder is mounted as a bind volume into the container at `/app/${KAPPA_CORE_DIR}`.
 - `SWARM_TOPIC_PREFIX`: Prefix used for hyperswarm topic generation and P2P network identification. It has the same role as GEOZONE in Spatial Content Discovery, servers with the same SWARM_TOPIC_PREFIX will synchronize their data.
+- `AUTH_REQUIRED`: When `true` (the default), mutating and provider routes require a JWT. Set to `false` only for local/dev; writes then use provider `noauthtest`.
 - `AUTH0_ISSUER`: Auth0 OAuth provider issuer URL.
 - `AUTH0_AUDIENCE`: Auth0 audience identifier (typically your service URL).
 - `COUNTRIES`: Comma-separated ISO country codes this service instance manages. Spatial Service Records are stored in per-country databases.
