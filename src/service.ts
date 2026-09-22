@@ -1,7 +1,7 @@
 import { Ssr } from "./models/ssr.interface";
 import { Element } from "./models/osm_json.interface";
 import { SsrDto } from "./models/ssr.dto";
-import { validateOrReject } from "class-validator";
+import { validateOrReject, ValidationError } from "class-validator";
 import "./noise-protocol-compat";
 import kappa from "kappa-core";
 import ram from "random-access-memory";
@@ -31,6 +31,41 @@ let COUNTRIES: string[] = requireEnv("COUNTRIES").split(",");
 COUNTRIES = COUNTRIES.map(function (x) {
   return x.toUpperCase();
 });
+
+function flattenValidationErrors(
+  errors: ValidationError[],
+  parent = ""
+): string[] {
+  const messages: string[] = [];
+  for (const error of errors) {
+    const property = parent ? `${parent}.${error.property}` : error.property;
+    if (error.constraints) {
+      for (const msg of Object.values(error.constraints)) {
+        messages.push(`${property}: ${msg}`);
+      }
+    }
+    if (error.children && error.children.length > 0) {
+      messages.push(...flattenValidationErrors(error.children, property));
+    }
+  }
+  return messages;
+}
+
+async function assertValid(value: object): Promise<void> {
+  try {
+    await validateOrReject(value);
+  } catch (errors) {
+    if (Array.isArray(errors)) {
+      const details = flattenValidationErrors(errors as ValidationError[]);
+      throw new Error(
+        details.length > 0
+          ? `Validation failed: ${details.join("; ")}`
+          : "Validation failed"
+      );
+    }
+    throw errors;
+  }
+}
 
 export interface IHash {
   [key: string]: any;
@@ -224,11 +259,7 @@ export const create = async (
 
   if (!provider) throw new Error("Invalid provider");
 
-  try {
-    await validateOrReject(ssr);
-  } catch (errors) {
-    throw new Error("Validation failed");
-  }
+  await assertValid(ssr);
 
   if (
     JSON.stringify(ssr.geometry.coordinates[0][0]) !==
@@ -304,11 +335,7 @@ export const update = async (
 
   if (!provider) throw new Error("Invalid provider");
 
-  try {
-    await validateOrReject(ssr);
-  } catch (errors) {
-    throw new Error("Validation failed");
-  }
+  await assertValid(ssr);
 
   const osmGet = new Promise<Element[]>((resolve, reject) => {
     kappaCores[country].get(id, function (err, nodes) {
