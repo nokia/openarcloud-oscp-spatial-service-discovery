@@ -79,7 +79,7 @@ SEARCH_RADIUS_KM=5
 ```
 
 **Variable Reference:**
-- `KAPPA_CORE_DIR`: Local directory for persistent kappa-core database files. This folder is mounted as a bind volume into the container at `/app/${KAPPA_CORE_DIR}`.
+- `KAPPA_CORE_DIR`: Local directory for persistent kappa-core database files. This folder is bind-mounted into the container at `/app/${KAPPA_CORE_DIR}` and is not copied into the image. On startup, the container makes that directory readable by every user, so a host account can back it up.
 - `SWARM_TOPIC_PREFIX`: Prefix used for hyperswarm topic generation and P2P network identification. It has the same role as GEOZONE in Spatial Content Discovery, servers with the same SWARM_TOPIC_PREFIX will synchronize their data.
 - `AUTH_REQUIRED`: When `true` (the default), mutating and provider routes require a JWT. Set to `false` only for local/dev; writes then use provider `noauthtest`.
 - `AUTH0_ISSUER`: Auth0 OAuth provider issuer URL.
