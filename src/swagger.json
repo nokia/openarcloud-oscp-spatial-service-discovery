@@ -28,6 +28,27 @@
         }
       }
     },
+    "/countries": {
+      "get": {
+        "summary": "List ISO country codes served by this SSD instance",
+        "operationId": "listCountries",
+        "tags": ["Health"],
+        "responses": {
+          "200": {
+            "description": "Uppercase ISO country codes from this instance's COUNTRIES configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "example": ["FI", "IT", "US"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{country}/ssrs": {
       "get": {
         "summary": "Get SSRs intersecting an H3 index",

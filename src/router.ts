@@ -55,6 +55,10 @@ class Router {
       res.status(200).json({ status: "ok" });
     });
 
+    router.get("/countries", (_req: express.Request, res: express.Response) => {
+      res.status(200).json(Service.listCountries());
+    });
+
     router.get(
       "/:country/provider/ssrs",
       ...(AUTH_REQUIRED ? [checkJwt, jwtAuthz(["read:ssrs"])] : []),

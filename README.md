@@ -84,7 +84,7 @@ SEARCH_RADIUS_KM=5
 - `AUTH_REQUIRED`: When `true` (the default), mutating and provider routes require a JWT. Set to `false` only for local/dev; writes then use provider `noauthtest`.
 - `AUTH0_ISSUER`: Auth0 OAuth provider issuer URL.
 - `AUTH0_AUDIENCE`: Auth0 audience identifier (typically your service URL).
-- `COUNTRIES`: Comma-separated ISO country codes this service instance manages. Spatial Service Records are stored in per-country databases.
+- `COUNTRIES`: Comma-separated ISO country codes this service instance manages. Spatial Service Records are stored in per-country databases. `GET /countries` returns this list as uppercase JSON, so each client asks the server it is using.
 - `PORT`: The port the Node.js service listens on inside the container and exposed to the host.
 - `SEARCH_RADIUS_KM`: Radius in kilometers of the bbox query around the client H3 hex (Turf `kilometers`). Default: `5`.
 

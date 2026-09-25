@@ -42,10 +42,14 @@ function optionalEnvNumber(name: string, defaultValue: number): number {
 const KAPPA_CORE_DIR: string = requireEnv("KAPPA_CORE_DIR");
 const SWARM_TOPIC_PREFIX: string = requireEnv("SWARM_TOPIC_PREFIX");
 const SEARCH_RADIUS_KM: number = optionalEnvNumber("SEARCH_RADIUS_KM", 5);
-let COUNTRIES: string[] = requireEnv("COUNTRIES").split(",");
-COUNTRIES = COUNTRIES.map(function (x) {
-  return x.toUpperCase();
-});
+const COUNTRIES: string[] = requireEnv("COUNTRIES")
+  .split(",")
+  .map((country) => country.trim().toUpperCase())
+  .filter((country) => country.length > 0);
+
+export function listCountries(): string[] {
+  return [...COUNTRIES];
+}
 
 function flattenValidationErrors(
   errors: ValidationError[],
