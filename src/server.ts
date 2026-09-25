@@ -6,15 +6,9 @@ assertAuthEnvIfRequired();
 
 import app from "./app";
 
-const portRaw = process.env.PORT;
-if (!portRaw || portRaw.trim() === "") {
-  console.error(
-    "Missing required environment variable: PORT. Set it in .env or the process environment."
-  );
-  process.exit(1);
-}
-
-const port = parseInt(portRaw, 10);
+const DEFAULT_PORT = 8031;
+const portRaw = process.env.PORT?.trim();
+const port = portRaw ? parseInt(portRaw, 10) : DEFAULT_PORT;
 if (Number.isNaN(port)) {
   console.error("PORT must be a valid number.");
   process.exit(1);
